@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base, EquipeDB, JoueurDB
+import crud
+from models import EquipeCreate, JoueurCreate
 
 Base.metadata.create_all(bind=engine)
 
@@ -7,25 +9,54 @@ def populate_database():
     db = SessionLocal()
     
     try:
-        equipe1 = EquipeDB(nom="Paris Saint-Germain", ville="Paris", ligue="Ligue 1")
-        equipe2 = EquipeDB(nom="Olympique de Marseille", ville="Marseille", ligue="Ligue 1")
-        equipe3 = EquipeDB(nom="AS Monaco", ville="Monaco", ligue="Ligue 1")
+        equipes_data = [
+            {"nom": "Manchester City", "ville": "Manchester", "ligue": "Premier League"},
+            {"nom": "Bayern Munich", "ville": "Munich", "ligue": "Bundesliga"},
+            {"nom": "Paris Saint Germain", "ville": "Paris", "ligue": "Ligue 1"},
+            {"nom": "FC Barcelona", "ville": "Barcelone", "ligue": "La Liga"},
+        ]
         
-        db.add_all([equipe1, equipe2, equipe3])
-        db.commit()
-        db.refresh(equipe1)
-        db.refresh(equipe2)
-        db.refresh(equipe3)
+        created_equipes = []
+        for equipe_info in equipes_data:
+            existing_equipe = db.query(EquipeDB).filter(
+                EquipeDB.nom == equipe_info["nom"]
+            ).first()
+            
+            if existing_equipe:
+                print(f"Équipe déjà existante: {existing_equipe.nom}")
+                created_equipes.append(existing_equipe)
+            else:
+                equipe_data = EquipeCreate(**equipe_info)
+                equipe = crud.create_equipe(db, equipe_data)
+                created_equipes.append(equipe)
+                print(f"Équipe créée: {equipe.nom}")
         
-        joueur1 = JoueurDB(nom="Mbappé", prenom="Kylian", age=25, poste="Attaquant", equipe_id=equipe1.id)
-        joueur2 = JoueurDB(nom="Neymar", prenom="Jr", age=32, poste="Ailier", equipe_id=equipe1.id)
-        joueur3 = JoueurDB(nom="Payet", prenom="Dimitri", age=37, poste="Milieu", equipe_id=equipe2.id)
-        joueur4 = JoueurDB(nom="Ben Yedder", prenom="Wissam", age=34, poste="Attaquant", equipe_id=equipe3.id)
+        joueurs_data = [
+            {"nom": "Debruyne", "prenom": "Kevin", "age": 34, "poste": "Milieu", "equipe_id": created_equipes[0].id},
+            {"nom": "Cherki", "prenom": "Rayan", "age": 21, "poste": "Attaquant", "equipe_id": created_equipes[0].id},
+            {"nom": "Olise", "prenom": "Michael", "age": 23, "poste": "Ailier", "equipe_id": created_equipes[1].id},
+            {"nom": "Neuer", "prenom": "Manuel", "age": 39, "poste": "Gardien", "equipe_id": created_equipes[1].id},
+            {"nom": "Hakimi", "prenom": "Achraf", "age": 26, "poste": "Defenseur", "equipe_id": created_equipes[2].id},
+            {"nom": "Neymar", "prenom": "Jr", "age": 33, "poste": "Ailier", "equipe_id": created_equipes[3].id},
+            {"nom": "Yamal", "prenom": "Lamine", "age": 18, "poste": "Ailier", "equipe_id": None},
+        ]
         
-        db.add_all([joueur1, joueur2, joueur3, joueur4])
-        db.commit()
+        for joueur_info in joueurs_data:
+            existing_joueur = db.query(JoueurDB).filter(
+                JoueurDB.nom == joueur_info["nom"],
+                JoueurDB.prenom == joueur_info["prenom"]
+            ).first()
+            
+            if existing_joueur:
+                equipe_nom = "Libre" if not existing_joueur.equipe_id else next((e.nom for e in created_equipes if e.id == existing_joueur.equipe_id), "Équipe inconnue")
+                print(f"Joueur déjà existant: {existing_joueur.prenom} {existing_joueur.nom} ({equipe_nom})")
+            else:
+                joueur_data = JoueurCreate(**joueur_info)
+                joueur = crud.create_joueur(db, joueur_data)
+                equipe_nom = "Libre" if not joueur.equipe_id else next((e.nom for e in created_equipes if e.id == joueur.equipe_id), "Équipe inconnue")
+                print(f"Joueur créé: {joueur.prenom} {joueur.nom} ({equipe_nom})")
         
-        print("Base de données peuplée avec succès!")
+        print("\nBase de données peuplée avec succès!")
         
     except Exception as e:
         print(f"Erreur lors du peuplement: {e}")

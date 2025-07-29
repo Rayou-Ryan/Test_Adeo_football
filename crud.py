@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from database import EquipeDB, JoueurDB
-from models import EquipeCreate, EquipeUpdate, JoueurCreate, JoueurUpdate
+from database import JoueurDB, EquipeDB
+from models import JoueurCreate, JoueurUpdate, EquipeCreate, EquipeUpdate
+from typing import List, Optional
 
 
 def get_equipe(db: Session, equipe_id: int):
