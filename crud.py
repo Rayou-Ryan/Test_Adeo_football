@@ -74,4 +74,13 @@ def delete_joueur(db: Session, joueur_id: int):
     if db_joueur:
         db.delete(db_joueur)
         db.commit()
+    return db_joueur
+
+
+def transfer_joueur(db: Session, joueur_id: int, nouvelle_equipe_id: int):
+    db_joueur = db.query(JoueurDB).filter(JoueurDB.id == joueur_id).first()
+    if db_joueur:
+        db_joueur.equipe_id = nouvelle_equipe_id
+        db.commit()
+        db.refresh(db_joueur)
     return db_joueur 

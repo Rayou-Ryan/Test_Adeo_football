@@ -4,7 +4,7 @@ from typing import List
 import crud
 from database import get_db, engine, Base
 from models import (
-    Joueur, JoueurCreate, JoueurUpdate,
+    Joueur, JoueurCreate, JoueurUpdate, JoueurTransfer,
     Equipe, EquipeCreate, EquipeUpdate
 )
 
@@ -107,6 +107,19 @@ def delete_joueur(joueur_id: int, db: Session = Depends(get_db)):
     if db_joueur is None:
         raise HTTPException(status_code=404, detail="Joueur non trouvé")
     return {"message": "Joueur supprimé avec succès"}
+
+
+@app.post("/joueurs/transfer", response_model=Joueur)
+def transfer_joueur(transfer: JoueurTransfer, db: Session = Depends(get_db)):
+    db_joueur = crud.get_joueur(db, joueur_id=transfer.joueur_id)
+    if not db_joueur:
+        raise HTTPException(status_code=404, detail="Joueur non trouvé")
+    
+    db_equipe = crud.get_equipe(db, equipe_id=transfer.nouvelle_equipe_id)
+    if not db_equipe:
+        raise HTTPException(status_code=404, detail="Équipe de destination non trouvée")
+    
+    return crud.transfer_joueur(db, joueur_id=transfer.joueur_id, nouvelle_equipe_id=transfer.nouvelle_equipe_id)
 
 
 if __name__ == "__main__":

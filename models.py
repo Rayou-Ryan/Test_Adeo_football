@@ -53,4 +53,9 @@ class Joueur(JoueurBase):
     equipe: Optional[Equipe] = None
     
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+class JoueurTransfer(BaseModel):
+    joueur_id: int
+    nouvelle_equipe_id: int 
