@@ -1,73 +1,144 @@
-# Phase 6 - Production avec Docker
+# Orchestrateur Football
 
-## Description
-
-Version finale avec Docker, prête pour la production. Inclut l'orchestration complète et les scripts utilitaires.
+API de gestion des joueurs et équipes de football développée avec FastAPI et PostgreSQL.
 
 ## Fonctionnalités
 
-- Application FastAPI complète
-- CRUD équipes et joueurs
-- Système de transferts
-- Dockerisation avec PostgreSQL
-- Scripts de gestion des données
+- Gestion des équipes (CRUD)
+- Gestion des joueurs (CRUD)
+- Transfert de joueurs entre équipes
+- Base de données PostgreSQL
+- Interface Swagger automatique
+- Conteneurisation Docker
 
-## Lancement avec Docker
+## Prérequis
 
+- Docker et Docker Compose
+- Python 3.8+ (pour développement local)
+
+## Installation et démarrage
+
+### Avec Docker (recommandé)
+
+1. Cloner le projet :
+```bash
+git clone <url-du-repo>
+cd orchestrator
+```
+
+2. Démarrer l'application :
 ```bash
 docker-compose up --build
 ```
 
-## Scripts utilitaires
+3. L'API sera accessible à l'adresse : http://localhost:8000
 
-### Peupler la base de données
+4. Interface Swagger : http://localhost:8000/docs
+
+### Développement local
+
+1. Installer les dépendances :
 ```bash
-python populate_db.py
+pip install -r requirements.txt
 ```
 
-### Vider la base de données
+2. Configurer la base de données PostgreSQL
+3. Démarrer l'application :
 ```bash
-python clear_db.py
+uvicorn main:app --reload
 ```
 
-## Services
-
-- **App** : Application FastAPI sur le port 8000
-- **DB** : PostgreSQL sur le port 5432
-
-## Endpoints
+## Endpoints disponibles
 
 ### Équipes
+
 - `POST /equipes/` - Créer une équipe
-- `GET /equipes/` - Lister les équipes
-- `GET /equipes/{id}` - Récupérer une équipe
-- `PUT /equipes/{id}` - Modifier une équipe
-- `DELETE /equipes/{id}` - Supprimer une équipe
+- `GET /equipes/` - Lister toutes les équipes
+- `GET /equipes/{equipe_id}` - Obtenir une équipe spécifique
+- `PUT /equipes/{equipe_id}` - Modifier une équipe
+- `DELETE /equipes/{equipe_id}` - Supprimer une équipe
+- `GET /equipes/{equipe_id}/joueurs/` - Lister les joueurs d'une équipe
 
 ### Joueurs
+
 - `POST /joueurs/` - Créer un joueur
-- `GET /joueurs/` - Lister les joueurs
-- `GET /joueurs/{id}` - Récupérer un joueur
-- `GET /equipes/{id}/joueurs/` - Joueurs d'une équipe
-- `PUT /joueurs/{id}` - Modifier un joueur
-- `DELETE /joueurs/{id}` - Supprimer un joueur
+- `GET /joueurs/` - Lister tous les joueurs
+- `GET /joueurs/{joueur_id}` - Obtenir un joueur spécifique
+- `PUT /joueurs/{joueur_id}` - Modifier un joueur
+- `DELETE /joueurs/{joueur_id}` - Supprimer un joueur
+- `POST /joueurs/transfer` - Transférer un joueur vers une autre équipe
 
-### Transferts
-- `POST /joueurs/transfer` - Transférer un joueur
+## Exemples d'utilisation
 
-## Documentation API
-
-- Swagger UI : `http://localhost:8000/docs`
-- ReDoc : `http://localhost:8000/redoc`
-
-## Commit suggéré (Conventional Commits)
-
+### Créer une équipe
 ```bash
-git commit -m "build: add Docker support and production setup
+curl -X POST "http://localhost:8000/equipes/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nom": "Manchester City",
+    "ville": "Manchester",
+    "ligue": "Premiere league"
+  }'
+```
 
-- Add Dockerfile for application containerization
-- Configure docker-compose with PostgreSQL service
-- Add database population script
-- Add database clearing utility
-- Configure production-ready environment"
-``` 
+### Créer un joueur
+```bash
+curl -X POST "http://localhost:8000/joueurs/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nom": "Debruyne",
+    "prenom": "Kevin",
+    "age": 34,
+    "poste": "Milieu",
+    "equipe_id": 1
+  }'
+```
+
+### Transférer un joueur
+```bash
+curl -X POST "http://localhost:8000/joueurs/transfer" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "joueur_id": 1,
+    "nouvelle_equipe_id": 2
+  }'
+```
+
+## Structure du projet
+
+```
+orchestrator/
+├── main.py              # Application FastAPI principale
+├── models.py            # Modèles Pydantic
+├── database.py          # Configuration base de données
+├── crud.py              # Opérations CRUD
+├── config.py            # Configuration de l'application
+├── requirements.txt     # Dépendances Python
+├── Dockerfile           # Configuration Docker
+├── docker-compose.yml   # Orchestration des services
+└── README.md           # Documentation
+```
+
+## Configuration
+
+Les variables d'environnement peuvent être configurées dans le fichier `config.py` :
+
+- `DATABASE_URL` : URL de connexion PostgreSQL
+- `HOST` : Adresse d'écoute de l'API
+- `PORT` : Port d'écoute de l'API
+
+## Base de données
+
+La base de données PostgreSQL est automatiquement initialisée au démarrage avec les tables nécessaires :
+
+- `equipes` : Stockage des équipes
+- `joueurs` : Stockage des joueurs avec référence à l'équipe
+
+## Technologies utilisées
+
+- **FastAPI** : Framework web moderne et rapide
+- **PostgreSQL** : Base de données relationnelle
+- **SQLAlchemy** : ORM Python
+- **Pydantic** : Validation et sérialisation des données
+- **Uvicorn** : Serveur ASGI
+- **Docker** : Conteneurisation
