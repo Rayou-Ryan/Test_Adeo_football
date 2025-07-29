@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from models import Equipe, EquipeCreate, Joueur, JoueurCreate
 
 app = FastAPI(
     title="Orchestrateur Football",
