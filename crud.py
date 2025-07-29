@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from database import EquipeDB
-from models import EquipeCreate, EquipeUpdate
+from database import EquipeDB, JoueurDB
+from models import EquipeCreate, EquipeUpdate, JoueurCreate, JoueurUpdate
 
 
 def get_equipe(db: Session, equipe_id: int):
@@ -35,4 +35,43 @@ def delete_equipe(db: Session, equipe_id: int):
     if db_equipe:
         db.delete(db_equipe)
         db.commit()
-    return db_equipe 
+    return db_equipe
+
+
+def get_joueur(db: Session, joueur_id: int):
+    return db.query(JoueurDB).filter(JoueurDB.id == joueur_id).first()
+
+
+def get_joueurs(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(JoueurDB).offset(skip).limit(limit).all()
+
+
+def get_joueurs_by_equipe(db: Session, equipe_id: int):
+    return db.query(JoueurDB).filter(JoueurDB.equipe_id == equipe_id).all()
+
+
+def create_joueur(db: Session, joueur: JoueurCreate):
+    db_joueur = JoueurDB(**joueur.dict())
+    db.add(db_joueur)
+    db.commit()
+    db.refresh(db_joueur)
+    return db_joueur
+
+
+def update_joueur(db: Session, joueur_id: int, joueur: JoueurUpdate):
+    db_joueur = db.query(JoueurDB).filter(JoueurDB.id == joueur_id).first()
+    if db_joueur:
+        update_data = joueur.dict(exclude_unset=True)
+        for field, value in update_data.items():
+            setattr(db_joueur, field, value)
+        db.commit()
+        db.refresh(db_joueur)
+    return db_joueur
+
+
+def delete_joueur(db: Session, joueur_id: int):
+    db_joueur = db.query(JoueurDB).filter(JoueurDB.id == joueur_id).first()
+    if db_joueur:
+        db.delete(db_joueur)
+        db.commit()
+    return db_joueur 
