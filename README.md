@@ -23,7 +23,7 @@ API de gestion des joueurs et équipes de football développée avec FastAPI et 
 1. Cloner le projet :
 ```bash
 git clone <url-du-repo>
-cd orchestrator
+cd Test_Adeo_football
 ```
 
 2. Démarrer l'application :
